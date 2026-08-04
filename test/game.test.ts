@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { buildGeometry } from '../src/game/geometry';
 import { buildBoard } from '../src/game/board';
-import { createGame } from '../src/game/state';
+import { createGame, offerTrade, answerTrade } from '../src/game/state';
 import {
   placeSettlement, canPlaceSetupSettlement, produce, tradeRatio, canBankTrade, bankTrade,
   updateLongestRoad, score, checkWinner,
@@ -60,6 +60,33 @@ test('banka takası: varsayılan oran 4:1 ve takas gerçekleşir', () => {
   bankTrade(s, 0, 'odun', 'tas');
   assert.equal(s.players[0].resources.odun, 0);
   assert.equal(s.players[0].resources.tas, 1);
+});
+
+test('oyuncular arası takas: kabul edilince kaynaklar el değiştirir', () => {
+  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false });
+  s.phase = 'aksiyon';
+  s.current = 0;
+  s.players[0].resources.odun = 2;
+  s.players[1].resources.tas = 1;
+  assert.equal(offerTrade(s, 1, { odun: 2 }, { tas: 1 }), true);
+  assert.ok(s.trade);
+  assert.equal(answerTrade(s, true), true);
+  assert.equal(s.players[0].resources.odun, 0);
+  assert.equal(s.players[0].resources.tas, 1);
+  assert.equal(s.players[1].resources.odun, 2);
+  assert.equal(s.players[1].resources.tas, 0);
+  assert.equal(s.trade, null);
+});
+
+test('oyuncular arası takas: reddedilince kaynaklar değişmez', () => {
+  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false });
+  s.phase = 'aksiyon';
+  s.current = 0;
+  s.players[0].resources.odun = 2;
+  offerTrade(s, 1, { odun: 1 }, { tas: 1 });
+  assert.equal(answerTrade(s, false), true);
+  assert.equal(s.players[0].resources.odun, 2);
+  assert.equal(s.trade, null);
 });
 
 test('en uzun yol: 5 yollu zincir sahipliği verir', () => {

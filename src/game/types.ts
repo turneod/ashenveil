@@ -86,7 +86,16 @@ export interface GameState {
   setupLastVertex: number | null;
   longestRoad: { owner: number | null; length: number };
   winner: number | null;
+  trade: TradeOffer | null; // bekleyen oyuncular arası takas teklifi
   log: string[];
+}
+
+/** Bir oyuncunun başka bir oyuncuya sunduğu takas teklifi. */
+export interface TradeOffer {
+  from: number; // teklif eden (sırası gelen oyuncu)
+  to: number; // teklif edilen rakip
+  give: Partial<Record<Resource, number>>; // from -> to
+  want: Partial<Record<Resource, number>>; // to -> from
 }
 
 /** İnşaat maliyetleri (tanıdıklık için Catan ile aynı). */
