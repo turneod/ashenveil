@@ -1,8 +1,15 @@
 # Bereket Vadisi 🌾
 
 Catan'dan ilham alan, **tamamen Türkçe**, tarayıcıda oynanan sade bir aile oyunu.
-2–4 oyuncu, aynı cihazda sırayla ("hot-seat"). Karışık yaş grupları için basit
-kurallar ve isteğe bağlı **Çocuk Modu** içerir.
+2–4 oyuncu. **İki oynama biçimi** var:
+
+- **📱 Bu cihazda (sırayla):** Tek cihazı sırayla kullanın.
+- **🛰️ Çevrimiçi (telefonlarla):** Herkes kendi cihazından katılır. Bir kişi
+  **oda kurar**, oda kodunu paylaşır; diğerleri **koda katılır**. Bağlantı,
+  PeerJS/WebRTC ile doğrudan cihazlar arasında kurulur (sunucu/kayıt gerekmez).
+  Oda kuran kişi sekmesini açık tutmalıdır.
+
+Karışık yaş grupları için basit kurallar ve isteğe bağlı **Çocuk Modu** içerir.
 
 ## Nasıl oynanır?
 
@@ -25,8 +32,13 @@ npm test         # oyun mantığı birim testleri
 
 ## Teknik
 
-Vite + TypeScript + saf SVG. Ek oyun kütüphanesi yok.
+Vite + TypeScript + saf SVG. Ağ için PeerJS (WebRTC).
 
-- `src/game/` — saf oyun mantığı (tahta, kurallar, durum) — render'dan bağımsız, test edilebilir
-- `src/render/` — SVG tahta çizimi ve arayüz panelleri
-- `src/ui/` — tur akışı ve etkileşim kontrolörü
+- `src/game/` — saf oyun mantığı (tahta, kurallar, durum, eylemler) — render'dan bağımsız, test edilebilir
+- `src/render/` — SVG tahta çizimi (dokulu illüstrasyon) ve arayüz panelleri
+- `src/ui/` — koltuk bazlı tur akışı ve etkileşim kontrolörü
+- `src/net/` — PeerJS taşıma + oda (host yetkili durumu tutar, guest'ler eylem gönderir)
+- `src/session.ts` — yerel/host/guest için ortak oturum soyutlaması
+
+Çevrimiçi mimari: **host** oyunu yürütür (yetkili durum), her eylemden sonra tam
+durumu tüm cihazlara yayınlar; **guest**'ler yalnızca sırası gelince eylem gönderir.

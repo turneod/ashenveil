@@ -35,7 +35,12 @@ function costText(mode: 'yol' | 'koy' | 'sehir'): string {
     .join('');
 }
 
-export function renderHUD(state: GameState, a: HudActions): HTMLElement {
+export interface HudView {
+  viewerSeat: number; // bu istemcinin kendi eli açık gösterilir
+  myTurn: boolean; // bu istemci şu an oynayabilir mi
+}
+
+export function renderHUD(state: GameState, a: HudActions, view: HudView): HTMLElement {
   const panel = h('div', { class: 'hud' });
   panel.append(h('h1', { class: 'title' }, `🌾 ${UI.baslik}`));
 
@@ -46,17 +51,18 @@ export function renderHUD(state: GameState, a: HudActions): HTMLElement {
   const list = h('div', { class: 'players' });
   state.players.forEach((p, i) => {
     const active = i === state.current && state.phase !== 'bitti';
+    const isMe = i === view.viewerSeat;
     const card = h('div', { class: `player-card${active ? ' active' : ''}${state.winner === i ? ' winner' : ''}` });
     card.style.setProperty('--pc', p.color);
     const head = h('div', { class: 'player-head' },
       h('span', { class: 'swatch' }),
-      h('span', { class: 'pname' }, p.name),
+      h('span', { class: 'pname' }, p.name + (isMe ? ' (sen)' : '')),
       h('span', { class: 'pscore' }, `${score(state, i)} ${UI.puan}`),
     );
     card.append(head);
     if (state.longestRoad.owner === i) card.append(h('div', { class: 'badge' }, `🛤️ ${UI.enUzunYol}`));
-    // Kaynak: aktif oyuncunun eli açık; diğerleri sadece toplam.
-    if (active) {
+    // Kaynak: kendi elin açık; diğerleri sadece kart sayısı.
+    if (isMe) {
       const hand = h('div', { class: 'hand' });
       for (const r of RESOURCES) {
         hand.append(h('span', { class: 'res', title: RES_AD[r] }, `${RES_EMOJI[r]} ${p.resources[r]}`));
@@ -70,7 +76,7 @@ export function renderHUD(state: GameState, a: HudActions): HTMLElement {
   panel.append(list);
 
   // Aksiyon alanı
-  panel.append(actionArea(state, a));
+  panel.append(actionArea(state, a, view));
 
   // Kayıt
   const log = h('div', { class: 'log' });
@@ -98,13 +104,21 @@ function phaseHint(state: GameState): string {
   }
 }
 
-function actionArea(state: GameState, a: HudActions): HTMLElement {
+function actionArea(state: GameState, a: HudActions, view: HudView): HTMLElement {
   const box = h('div', { class: 'actions' });
 
   if (state.phase === 'bitti') {
     box.append(h('button', { class: 'btn primary', onclick: a.onNewGame }, UI.yeniOyun));
     return box;
   }
+
+  // Sıra bende değilse (çevrimiçi): sadece bekleme mesajı.
+  if (!view.myTurn) {
+    if (state.dice) box.append(h('div', { class: 'dice' }, diceFace(state.dice[0]), diceFace(state.dice[1])));
+    box.append(h('div', { class: 'waiting' }, `⏳ Sıra ${state.players[state.current].name}'de — bekle.`));
+    return box;
+  }
+
   if (state.phase === 'kurulum' || state.phase === 'kervanci') {
     // Yönlendirme tahtada; ekstra buton yok.
     if (state.phase === 'kervanci' && state.dice) {
