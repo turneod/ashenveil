@@ -1,18 +1,17 @@
 {
-  "name": "ashenveil",
+  "name": "bereket-vadisi",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "tsx --test test/*.test.ts"
   },
   "devDependencies": {
-    "typescript": "~6.0.2",
-    "vite": "^8.0.12"
-  },
-  "dependencies": {
-    "phaser": "^4.1.0"
+    "tsx": "^4.19.2",
+    "typescript": "~5.6.2",
+    "vite": "^5.4.10"
   }
 }
