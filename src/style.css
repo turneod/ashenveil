@@ -81,13 +81,26 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- Oyun düzeni ---------- */
 .game { display: flex; gap: 16px; padding: 14px; align-items: flex-start; min-height: 100vh; }
 .board-wrap {
-  flex: 1 1 auto; min-width: 0; display: flex; justify-content: center;
+  flex: 1 1 auto; min-width: 0; position: relative; overflow: hidden;
+  height: calc(100vh - 34px);
   background: linear-gradient(180deg, var(--sea-top), var(--sea-bot));
   border-radius: 16px; box-shadow: inset 0 0 60px rgba(0,0,0,.18);
-  padding: 6px;
+  touch-action: none; /* pinch/pan'ı biz yönetiriz */
 }
-.board { width: 100%; max-width: 800px; max-height: calc(100vh - 34px); height: auto; display: block; }
-.connecting { margin: auto; padding: 60px 20px; font-size: 1.2rem; color: #fff; font-weight: 700; }
+.board-viewport { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+.board { display: block; } /* boyut satır içi (px) verilir */
+
+/* Yakınlaştırma kontrolleri */
+.zoom-ctrl { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 7px; z-index: 5; }
+.zbtn {
+  width: 42px; height: 42px; border-radius: 11px; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .93); color: var(--ink); font-size: 1.4rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+}
+.zbtn:active { transform: translateY(1px); }
+
+.connecting { margin: auto; padding: 60px 20px; font-size: 1.2rem; color: #fff; font-weight: 700; text-align: center; }
 
 .hex { transition: filter .12s; }
 .clickable-tile { cursor: pointer; }
@@ -144,9 +157,19 @@ button { font-family: inherit; cursor: pointer; }
 .log { border-top: 1px solid var(--line); padding-top: 8px; font-size: .82rem; color: #5c4d33; }
 .log-line { padding: 2px 0; border-bottom: 1px dotted #e6dcc2; }
 
+/* ---------- Dokunmatik: daha büyük hedefler ---------- */
+@media (pointer: coarse) {
+  .legal-vertex { r: 16px; }
+  .legal-edge { stroke-width: 16px; }
+  .zbtn { width: 48px; height: 48px; font-size: 1.5rem; }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 860px) {
-  .game { flex-direction: column; align-items: stretch; }
-  .hud { flex-basis: auto; max-height: none; }
-  .board { max-height: 60vh; }
+  .game { flex-direction: column; align-items: stretch; padding: 10px; gap: 10px; }
+  .board-wrap { height: 56vh; }
+  .hud { flex-basis: auto; max-height: none; padding: 12px 14px; }
+  .btn.build { padding: 12px 8px; }
+  .die { font-size: 3rem; }
+  .btn.primary.big { padding: 16px; font-size: 1.15rem; }
 }
