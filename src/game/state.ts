@@ -47,6 +47,7 @@ export function createGame(names: string[], opts: GameOptions): GameState {
     setupLastVertex: null,
     longestRoad: { owner: null, length: 0 },
     winner: null,
+    trade: null,
     log: ['Kurulum: ilk oyuncu bir köy ve ona bitişik bir yol yerleştirsin.'],
   };
 }
@@ -148,9 +149,69 @@ export function tradeWithBank(state: GameState, give: Resource, receive: Resourc
   return true;
 }
 
+// ---- Oyuncular arası takas ----
+
+/** Sırası gelen oyuncu bir rakibe takas teklif eder. */
+export function offerTrade(
+  state: GameState,
+  to: number,
+  give: Partial<Record<Resource, number>>,
+  want: Partial<Record<Resource, number>>,
+): boolean {
+  if (state.phase !== 'aksiyon' || state.trade) return false;
+  const from = state.current;
+  if (to === from || to < 0 || to >= state.players.length) return false;
+  if (!hasResources(state.players[from], give)) return false;
+  const gTot = sumRes(give);
+  const wTot = sumRes(want);
+  if (gTot === 0 && wTot === 0) return false;
+  state.trade = { from, to, give, want };
+  state.log.unshift(`${state.players[from].name}, ${state.players[to].name}'e takas öneriyor.`);
+  return true;
+}
+
+/** Teklif edilen oyuncu kabul/ret verir. */
+export function answerTrade(state: GameState, accept: boolean): boolean {
+  const t = state.trade;
+  if (!t) return false;
+  if (!accept) {
+    state.log.unshift(`${state.players[t.to].name} takası reddetti.`);
+    state.trade = null;
+    return true;
+  }
+  // kabul: her iki taraf da vereceğine sahip olmalı
+  if (!hasResources(state.players[t.from], t.give) || !hasResources(state.players[t.to], t.want)) {
+    return false;
+  }
+  moveRes(state.players[t.from], state.players[t.to], t.give);
+  moveRes(state.players[t.to], state.players[t.from], t.want);
+  state.log.unshift(`${state.players[t.to].name} takası kabul etti.`);
+  state.trade = null;
+  return true;
+}
+
+/** Teklif eden vazgeçer. */
+export function cancelOffer(state: GameState): boolean {
+  if (!state.trade) return false;
+  state.trade = null;
+  return true;
+}
+
+function sumRes(map: Partial<Record<Resource, number>>): number {
+  return (Object.values(map) as number[]).reduce((s, n) => s + (n ?? 0), 0);
+}
+
+function moveRes(from: Player, to: Player, map: Partial<Record<Resource, number>>): void {
+  for (const r of Object.keys(map) as Resource[]) {
+    const n = map[r] ?? 0;
+    from.resources[r] -= n;
+    to.resources[r] += n;
+  }
+}
+
 /** Turu bitir: en uzun yolu güncelle, kazananı kontrol et, sırayı devret. */
 export function endTurn(state: GameState): boolean {
-  if (state.phase !== 'aksiyon') return false;
+  if (state.phase !== 'aksiyon' || state.trade) return false;
   updateLongestRoad(state);
   const w = checkWinner(state);
   if (w !== null) {

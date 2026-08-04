@@ -3,7 +3,7 @@
 
 import type { GameState } from '../game/types';
 import type { NetAction } from '../game/apply';
-import { applyNetAction } from '../game/apply';
+import { applyNetAction, canActorApply } from '../game/apply';
 import { createGame } from '../game/state';
 import type { Session, Seat } from '../session';
 import type { HostNet, GuestNet } from './peer';
@@ -92,7 +92,7 @@ export class HostRoom implements Session {
 
   private hostApply(seat: number, action: NetAction): void {
     if (!this.state) return;
-    if (seat !== this.state.current) return; // sadece sırası gelen oynayabilir
+    if (!canActorApply(this.state, seat, action)) return; // sıra/teklif yetkisi
     if (applyNetAction(this.state, action)) {
       this.net.broadcast({ t: 'state', state: this.state });
       this.updateCb();
