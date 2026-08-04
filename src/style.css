@@ -146,7 +146,7 @@ button { font-family: inherit; cursor: pointer; }
 .build-row { display: flex; gap: 6px; }
 
 /* ---------- Zar (tahtanın sol üstü) ---------- */
-.dice-box { position: absolute; top: 10px; left: 10px; display: flex; gap: 8px; z-index: 5; }
+.dice-box { position: absolute; top: 10px; left: 10px; display: flex; gap: 8px; z-index: 5; pointer-events: none; }
 .die3d {
   width: 40px; height: 40px; background: #fff; border-radius: 10px; padding: 6px;
   display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2px;
@@ -203,6 +203,46 @@ button { font-family: inherit; cursor: pointer; }
 
 .log { border-top: 1px solid var(--line); padding-top: 8px; font-size: .82rem; color: #5c4d33; }
 .log-line { padding: 2px 0; border-bottom: 1px dotted #e6dcc2; }
+
+/* ---------- SVG ikonlar ---------- */
+.ricon, .uicon { vertical-align: middle; flex: 0 0 auto; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.btn.build { flex-direction: column; gap: 2px; }
+.title { display: flex; align-items: center; gap: 8px; }
+.hand .res { display: inline-flex; align-items: center; gap: 3px; }
+.hand.muted { display: flex; align-items: center; gap: 5px; }
+.seg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.chip { display: inline-flex; align-items: center; justify-content: center; }
+.tchip { display: inline-flex; align-items: center; gap: 2px; }
+.mini-cost { display: inline-flex; gap: 1px; vertical-align: middle; }
+
+.badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: .76rem; background: #eadfc4; border-radius: 6px; padding: 2px 7px; font-weight: 700; color: #6b4e1c; }
+.objective { display: flex; align-items: center; gap: 5px; margin-top: 5px; font-size: .8rem; background: #eef4e2; border-radius: 7px; padding: 3px 7px; color: #46652a; font-weight: 600; }
+.objective.done { background: #d7efc4; color: #2f5e1c; }
+.event-banner { display: flex; align-items: center; gap: 6px; background: #fdeccb; border: 1px solid #e6c07a; border-radius: 10px; padding: 7px 10px; font-weight: 700; font-size: .88rem; margin-bottom: 10px; color: #8a5a1c; }
+
+/* ---------- Gelişim kartları ---------- */
+.dev { border: 1px solid var(--line); border-radius: 12px; padding: 8px; background: #f2effb; }
+.dev-title { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: .9rem; margin-bottom: 6px; color: #4c3b7a; }
+.dev-body { display: flex; flex-direction: column; gap: 7px; }
+.deck-n { color: #7a6b9a; font-weight: 800; }
+.dev-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.devcard { display: flex; flex-direction: column; align-items: center; gap: 2px; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 6px 8px; min-width: 62px; color: var(--ink); }
+.devcard.playable { cursor: pointer; border-color: #7d5bd0; box-shadow: 0 2px 6px rgba(125, 91, 208, .25); }
+.devcard[disabled] { opacity: .5; }
+.dc-name { font-size: .7rem; font-weight: 700; text-align: center; }
+.dc-n { font-size: .72rem; color: #7a6b9a; font-weight: 800; }
+.dev-picker { border-top: 1px dashed var(--line); padding-top: 6px; }
+.picked { display: flex; gap: 4px; margin-top: 4px; }
+
+/* ---------- Paket seçimi (giriş) ---------- */
+.packs { margin: 10px 0 14px; }
+.pack-info { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: .85rem; color: #6b5a3c; margin: 4px 0 8px; }
+.pack-row { display: flex; align-items: flex-start; gap: 9px; padding: 7px 0; border-top: 1px solid #ece2c8; cursor: pointer; }
+.pack-row input { margin-top: 3px; width: 17px; height: 17px; }
+.pack-name { display: flex; align-items: center; gap: 5px; font-weight: 700; }
+.pack-desc { font-size: .8rem; color: #6b5a3c; }
 
 /* ---------- Dokunmatik: daha büyük hedefler ---------- */
 @media (pointer: coarse) {

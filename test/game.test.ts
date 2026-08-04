@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { buildGeometry } from '../src/game/geometry';
 import { buildBoard } from '../src/game/board';
-import { createGame, offerTrade, answerTrade } from '../src/game/state';
+import { createGame, offerTrade, answerTrade, buyDev, playKnight, playMonopoly } from '../src/game/state';
 import {
   placeSettlement, canPlaceSetupSettlement, produce, tradeRatio, canBankTrade, bankTrade,
   updateLongestRoad, score, checkWinner,
@@ -36,7 +36,7 @@ test('tahta: doğru arazi dağılımı ve kervancı çölde başlar', () => {
 });
 
 test('mesafe kuralı: köyün komşusuna köy kurulamaz', () => {
-  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false });
+  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false, packs: { gorev: false, olay: false, liman: false } });
   const v = 0;
   placeSettlement(s, v, 0);
   for (const n of s.vertices[v].neighbors) {
@@ -45,7 +45,7 @@ test('mesafe kuralı: köyün komşusuna köy kurulamaz', () => {
 });
 
 test('üretim: köy komşusundaki arazi zar gelince kaynak üretir', () => {
-  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false });
+  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false, packs: { gorev: false, olay: false, liman: false } });
   const tile = s.tiles.find((t) => t.terrain !== 'col' && t.id !== s.robber)!;
   placeSettlement(s, tile.corners[0], 0);
   produce(s, tile.token!);
@@ -53,7 +53,7 @@ test('üretim: köy komşusundaki arazi zar gelince kaynak üretir', () => {
 });
 
 test('banka takası: varsayılan oran 4:1 ve takas gerçekleşir', () => {
-  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false });
+  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false, packs: { gorev: false, olay: false, liman: false } });
   s.players[0].resources.odun = 4;
   assert.equal(tradeRatio(s, 0, 'odun'), 4);
   assert.equal(canBankTrade(s, 0, 'odun', 'tas'), true);
@@ -63,7 +63,7 @@ test('banka takası: varsayılan oran 4:1 ve takas gerçekleşir', () => {
 });
 
 test('oyuncular arası takas: kabul edilince kaynaklar el değiştirir', () => {
-  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false });
+  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false, packs: { gorev: false, olay: false, liman: false } });
   s.phase = 'aksiyon';
   s.current = 0;
   s.players[0].resources.odun = 2;
@@ -79,7 +79,7 @@ test('oyuncular arası takas: kabul edilince kaynaklar el değiştirir', () => {
 });
 
 test('oyuncular arası takas: reddedilince kaynaklar değişmez', () => {
-  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false });
+  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false, packs: { gorev: false, olay: false, liman: false } });
   s.phase = 'aksiyon';
   s.current = 0;
   s.players[0].resources.odun = 2;
@@ -89,8 +89,32 @@ test('oyuncular arası takas: reddedilince kaynaklar değişmez', () => {
   assert.equal(s.trade, null);
 });
 
+test('gelişim: kart alınır, aynı tur oynanamaz', () => {
+  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false, packs: { gorev: false, olay: false, liman: false } });
+  s.phase = 'aksiyon';
+  s.current = 0;
+  s.devDeck = ['sovalye'];
+  s.players[0].resources = { odun: 0, tugla: 0, yun: 1, bugday: 1, tas: 1 };
+  assert.equal(buyDev(s), true);
+  assert.equal(s.players[0].dev.sovalye, 1);
+  assert.equal(playKnight(s), false); // bu tur alındı, oynanamaz
+});
+
+test('Tekel: rakiplerden bir kaynağın tümünü toplar', () => {
+  const s = createGame(['A', 'B', 'C'], { targetScore: 10, kidMode: false, packs: { gorev: false, olay: false, liman: false } });
+  s.phase = 'aksiyon';
+  s.current = 0;
+  s.players[0].dev.tekel = 1;
+  s.players[1].resources.odun = 3;
+  s.players[2].resources.odun = 2;
+  assert.equal(playMonopoly(s, 'odun'), true);
+  assert.equal(s.players[0].resources.odun, 5);
+  assert.equal(s.players[1].resources.odun, 0);
+  assert.equal(s.players[2].resources.odun, 0);
+});
+
 test('en uzun yol: 5 yollu zincir sahipliği verir', () => {
-  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false });
+  const s = createGame(['A', 'B'], { targetScore: 10, kidMode: false, packs: { gorev: false, olay: false, liman: false } });
   const path = buildPath(s, 5);
   assert.equal(path.length, 5);
   for (const e of path) s.roads[e] = 0;
@@ -100,7 +124,7 @@ test('en uzun yol: 5 yollu zincir sahipliği verir', () => {
 });
 
 test('puan ve kazanan: şehir 2 puan, hedefe ulaşan kazanır', () => {
-  const s = createGame(['A', 'B'], { targetScore: 2, kidMode: false });
+  const s = createGame(['A', 'B'], { targetScore: 2, kidMode: false, packs: { gorev: false, olay: false, liman: false } });
   placeSettlement(s, 0, 0);
   s.buildings[0].type = 'sehir';
   assert.equal(score(s, 0), 2);

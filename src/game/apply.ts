@@ -5,6 +5,7 @@ import type { GameState, Resource } from './types';
 import {
   rollTurn, moveRobberTo, buildRoad, buildSettlement, buildCity, tradeWithBank, endTurn,
   offerTrade, answerTrade, cancelOffer,
+  buyDev, playKnight, playRoadBuilding, playYearOfPlenty, playMonopoly,
 } from './state';
 import { setupPlaceSettlement, setupPlaceRoad } from './setup';
 
@@ -20,6 +21,11 @@ export type NetAction =
   | { t: 'proposeTrade'; to: number; give: ResMap; want: ResMap }
   | { t: 'respondTrade'; accept: boolean }
   | { t: 'cancelTrade' }
+  | { t: 'buyDev' }
+  | { t: 'playKnight' }
+  | { t: 'playRoadBuilding' }
+  | { t: 'playPlenty'; r1: Resource; r2: Resource }
+  | { t: 'playMonopoly'; r: Resource }
   | { t: 'endTurn' }
   | { t: 'setupSettlement'; vertex: number }
   | { t: 'setupRoad'; edge: number };
@@ -36,6 +42,11 @@ export function applyNetAction(state: GameState, a: NetAction): boolean {
     case 'proposeTrade': return offerTrade(state, a.to, a.give, a.want);
     case 'respondTrade': return answerTrade(state, a.accept);
     case 'cancelTrade': return cancelOffer(state);
+    case 'buyDev': return buyDev(state);
+    case 'playKnight': return playKnight(state);
+    case 'playRoadBuilding': return playRoadBuilding(state);
+    case 'playPlenty': return playYearOfPlenty(state, a.r1, a.r2);
+    case 'playMonopoly': return playMonopoly(state, a.r);
     case 'endTurn': return endTurn(state);
     case 'setupSettlement': return setupPlaceSettlement(state, a.vertex);
     case 'setupRoad': return setupPlaceRoad(state, a.edge);

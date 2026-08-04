@@ -12,6 +12,19 @@ export type PortType = 'genel' | Resource;
 /** İnşa edilebilen parçalar. */
 export type BuildingType = 'koy' | 'sehir';
 
+/** Gelişim kartı türleri (oyunun aslına dahil). */
+export type DevCardType = 'sovalye' | 'yolYapimi' | 'bereketYili' | 'tekel' | 'zafer';
+
+/** Görev (gizli hedef) kartı türleri — 'Görev Kartları' paketi. */
+export type ObjectiveId = 'yollar' | 'cesitlilik' | 'sehirler' | 'liman' | 'buyukKoy';
+
+/** Seçmeli paketler (gelişim kartları her zaman açıktır). */
+export interface PackConfig {
+  gorev: boolean; // Görev / Hedef kartları
+  olay: boolean; // Olay kartları
+  liman: boolean; // Liman ustası
+}
+
 /** Oyun fazları. */
 export type Phase =
   | 'kurulum' // başlangıç yerleştirmesi (yılan sırası)
@@ -65,6 +78,12 @@ export interface Player {
   name: string;
   color: string;
   resources: Record<Resource, number>;
+  dev: Record<DevCardType, number>; // elindeki gelişim kartları
+  devNew: DevCardType[]; // bu tur alındı (bu tur oynanamaz)
+  knights: number; // oynanmış şövalye sayısı (En Büyük Ordu)
+  playedDevThisTurn: boolean; // tur başına 1 gelişim kartı
+  objective: ObjectiveId | null; // gizli görev (Görev paketi)
+  objectiveDone: boolean;
 }
 
 export interface GameState {
@@ -85,8 +104,13 @@ export interface GameState {
   setupSubStage: 'koy' | 'yol';
   setupLastVertex: number | null;
   longestRoad: { owner: number | null; length: number };
+  largestArmy: { owner: number | null; size: number };
   winner: number | null;
   trade: TradeOffer | null; // bekleyen oyuncular arası takas teklifi
+  devDeck: DevCardType[]; // gelişim kartı destesi
+  freeRoads: number; // Yol Yapımı kartı: bedava yol sayacı
+  packs: PackConfig;
+  lastEvent: string | null; // son olay kartı açıklaması (Olay paketi)
   log: string[];
 }
 
@@ -110,7 +134,23 @@ export const RESOURCES: Resource[] = ['odun', 'tugla', 'yun', 'bugday', 'tas'];
 /** Oyuncu renkleri (en fazla 4 oyuncu). */
 export const PLAYER_COLORS = ['#d64545', '#3b7dd8', '#e8a93b', '#4c9a52'];
 
+/** Gelişim kartı maliyeti. */
+export const DEV_COST: Partial<Record<Resource, number>> = { yun: 1, bugday: 1, tas: 1 };
+
 export const KOY_PUAN = 1;
 export const SEHIR_PUAN = 2;
 export const EN_UZUN_YOL_PUAN = 2;
 export const EN_UZUN_YOL_ESIK = 5; // en az bu kadar yol
+export const EN_BUYUK_ORDU_PUAN = 2;
+export const EN_BUYUK_ORDU_ESIK = 3; // en az bu kadar şövalye
+export const ZAFER_KART_PUAN = 1;
+export const GOREV_PUAN = 2; // görev tamamlama bonusu
+
+/** Gelişim destesi kompozisyonu. */
+export const DEV_DECK: DevCardType[] = [
+  ...Array<DevCardType>(10).fill('sovalye'),
+  ...Array<DevCardType>(3).fill('zafer'),
+  ...Array<DevCardType>(2).fill('yolYapimi'),
+  ...Array<DevCardType>(2).fill('bereketYili'),
+  ...Array<DevCardType>(2).fill('tekel'),
+];

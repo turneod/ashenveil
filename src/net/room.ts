@@ -1,7 +1,7 @@
 // Çevrimiçi oda: host yetkili durumu tutar, guest'ler eylem gönderir.
 // HostRoom ve GuestRoom, controller'ın kullandığı Session arayüzünü uygular.
 
-import type { GameState } from '../game/types';
+import type { GameState, PackConfig } from '../game/types';
 import type { NetAction } from '../game/apply';
 import { applyNetAction, canActorApply } from '../game/apply';
 import { createGame } from '../game/state';
@@ -36,7 +36,7 @@ export class HostRoom implements Session {
   private guests: { conn: DataConnection; name: string }[] = [];
 
   constructor(
-    private opts: { hostName: string; targetScore: number; kidMode: boolean },
+    private opts: { hostName: string; targetScore: number; kidMode: boolean; packs: PackConfig },
     private h: HostRoomHandlers,
   ) {
     this.net = startHost({
@@ -105,7 +105,7 @@ export class HostRoom implements Session {
   start(): void {
     if (!this.canStart()) return;
     const names = this.players().map((p) => p.name);
-    this.state = createGame(names, { targetScore: this.opts.targetScore, kidMode: this.opts.kidMode });
+    this.state = createGame(names, { targetScore: this.opts.targetScore, kidMode: this.opts.kidMode, packs: this.opts.packs });
     this.started = true;
     this.net.broadcast({ t: 'state', state: this.state });
     this.h.onStart();

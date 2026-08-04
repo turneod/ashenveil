@@ -4,7 +4,8 @@
 import type { GameState, Resource } from '../game/types';
 import { RESOURCES } from '../game/types';
 import { tradeRatio, canBankTrade } from '../game/rules';
-import { RES_EMOJI, RES_AD } from '../i18n';
+import { RES_AD } from '../i18n';
+import { resIcon, uiIcon } from './icons';
 
 export interface TradeActions {
   onBankTrade: (give: Resource, receive: Resource) => void;
@@ -36,14 +37,18 @@ export function renderTradePanel(state: GameState, actions: TradeActions): HTMLE
 
   const body = h('div', { class: 'trade-body' });
 
-  const tabs = h('div', { class: 'seg' },
-    tab('🏦 Banka', () => mode === 'banka', () => { mode = 'banka'; paint(); }),
-    tab('🤝 Oyuncu', () => mode === 'oyuncu', () => { mode = 'oyuncu'; paint(); }),
-  );
+  const tabs = h('div', { class: 'seg' });
   box.append(tabs, body);
 
-  function tab(label: string, active: () => boolean, on: () => void): HTMLElement {
-    return h('button', { class: `seg-btn${active() ? ' on' : ''}`, onclick: on }, label);
+  function tab(iconName: string, label: string, active: boolean, on: () => void): HTMLElement {
+    return h('button', { class: `seg-btn${active ? ' on' : ''}`, onclick: on }, uiIcon(iconName, 16), label);
+  }
+
+  function paintTabs(): void {
+    tabs.replaceChildren(
+      tab('banka', 'Banka', mode === 'banka', () => { mode = 'banka'; paint(); }),
+      tab('takas', 'Oyuncu', mode === 'oyuncu', () => { mode = 'oyuncu'; paint(); }),
+    );
   }
 
   function resChips(selected: Resource | null, pick: (r: Resource) => void): HTMLElement {
@@ -51,7 +56,7 @@ export function renderTradePanel(state: GameState, actions: TradeActions): HTMLE
     for (const r of RESOURCES) {
       row.append(h('button', {
         class: `chip${selected === r ? ' on' : ''}`, title: RES_AD[r], onclick: () => pick(r),
-      }, RES_EMOJI[r]));
+      }, resIcon(r, 20)));
     }
     return row;
   }
@@ -63,7 +68,7 @@ export function renderTradePanel(state: GameState, actions: TradeActions): HTMLE
       const dec = h('button', { class: 'sbtn', onclick: () => { if (store[r] > 0) { store[r]--; count.textContent = String(store[r]); refreshButtons(); } } }, '−');
       const inc = h('button', { class: 'sbtn', onclick: () => { if (store[r] < maxOf(r)) { store[r]++; count.textContent = String(store[r]); refreshButtons(); } } }, '+');
       grid.append(h('div', { class: 'step-cell' },
-        h('span', { class: 'se' }, RES_EMOJI[r]),
+        resIcon(r, 20),
         h('div', { class: 'step-row' }, dec, count, inc),
       ));
     }
@@ -84,10 +89,7 @@ export function renderTradePanel(state: GameState, actions: TradeActions): HTMLE
   }
 
   function paint(): void {
-    tabs.replaceChildren(
-      tab('🏦 Banka', () => mode === 'banka', () => { mode = 'banka'; paint(); }),
-      tab('🤝 Oyuncu', () => mode === 'oyuncu', () => { mode = 'oyuncu'; paint(); }),
-    );
+    paintTabs();
     body.replaceChildren();
 
     if (mode === 'banka') {
