@@ -146,11 +146,23 @@ button { font-family: inherit; cursor: pointer; }
 .build-row { display: flex; gap: 6px; }
 
 /* ---------- Zar (tahtanın sol üstü) ---------- */
-.dice-box { position: absolute; top: 10px; left: 10px; display: flex; gap: 8px; z-index: 5; pointer-events: none; }
+.dice-box { position: absolute; top: 10px; left: 10px; z-index: 5; pointer-events: none; }
+.dice-inner { position: relative; display: flex; gap: 9px; }
+.dice-close {
+  pointer-events: auto; position: absolute; top: -9px; right: -9px;
+  width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line);
+  background: #fff; color: #555; font-weight: 800; font-size: 16px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); cursor: pointer;
+}
+.dice-reopen {
+  pointer-events: auto; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .93); color: var(--ink); display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .3); cursor: pointer;
+}
 .die3d {
-  width: 40px; height: 40px; background: #fff; border-radius: 10px; padding: 6px;
-  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, .4); border: 1px solid #e6ddc8;
+  width: 54px; height: 54px; background: #fff; border-radius: 12px; padding: 8px;
+  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 3px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .42); border: 1px solid #e6ddc8;
 }
 .die3d span { border-radius: 50%; }
 .die3d span.on { background: #262626; }
@@ -258,5 +270,5 @@ button { font-family: inherit; cursor: pointer; }
   .hud { flex-basis: auto; max-height: none; padding: 12px 14px; }
   .btn.build { padding: 12px 8px; }
   .btn.primary.big { padding: 16px; font-size: 1.15rem; }
-  .dice-box .die3d { width: 46px; height: 46px; }
+  .dice-box .die3d { width: 62px; height: 62px; }
 }

@@ -1,38 +1,65 @@
-// Masanın sol üstünde duran iki zar. Atıldığında zarlar kısa süre "yuvarlanır"
-// (yüzler hızla değişir + döner), sonra sonuca oturur. Minimal ama gerçek atış hissi.
+// Masanın sol üstünde duran iki zar. Atıldığında kısa "yuvarlanma" animasyonu,
+// sonra sonuca oturur. Kutu kapatılabilir (×); kapatınca küçük bir zar düğmesi kalır.
+
+import { uiIcon } from '../render/icons';
 
 const PIPS: Record<number, number[]> = {
-  1: [4],
-  2: [0, 8],
-  3: [0, 4, 8],
-  4: [0, 2, 6, 8],
-  5: [0, 2, 4, 6, 8],
-  6: [0, 2, 3, 5, 6, 8],
+  1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8],
 };
 
 export class DiceBox {
   readonly el: HTMLDivElement;
+  private inner: HTMLDivElement;
+  private reopen: HTMLButtonElement;
   private d1: HTMLDivElement;
   private d2: HTMLDivElement;
   private timer: number | null = null;
+  private collapsed = false;
+  private lastDice: [number, number] | null = null;
 
   constructor() {
     this.el = document.createElement('div');
     this.el.className = 'dice-box';
     this.el.style.display = 'none';
+
+    this.inner = document.createElement('div');
+    this.inner.className = 'dice-inner';
     this.d1 = makeDie();
     this.d2 = makeDie();
-    this.el.append(this.d1, this.d2);
-    // tahtayı kaydırmayı/tıklamayı tetiklemesin
-    this.el.addEventListener('pointerdown', (e) => e.stopPropagation());
-    this.el.addEventListener('click', (e) => e.stopPropagation());
+    const close = document.createElement('button');
+    close.className = 'dice-close';
+    close.textContent = '×';
+    close.title = 'Zarı gizle';
+    close.addEventListener('pointerdown', (e) => e.stopPropagation());
+    close.addEventListener('click', (e) => { e.stopPropagation(); this.collapsed = true; this.stop(); this.layout(); });
+    this.inner.append(this.d1, this.d2, close);
+
+    this.reopen = document.createElement('button');
+    this.reopen.className = 'dice-reopen';
+    this.reopen.title = 'Zarı göster';
+    this.reopen.append(uiIcon('zar', 22));
+    this.reopen.addEventListener('pointerdown', (e) => e.stopPropagation());
+    this.reopen.addEventListener('click', (e) => { e.stopPropagation(); this.collapsed = false; this.layout(); });
+
+    this.el.append(this.inner, this.reopen);
+    this.layout();
   }
 
   update(dice: [number, number] | null, animate: boolean): void {
+    this.lastDice = dice;
     if (!dice) { this.el.style.display = 'none'; this.stop(); return; }
     this.el.style.display = 'flex';
-    if (animate) this.animateTo(dice);
-    else this.setFaces(dice[0], dice[1]);
+    this.layout();
+    if (!this.collapsed) {
+      if (animate) this.animateTo(dice);
+      else this.setFaces(dice[0], dice[1]);
+    }
+  }
+
+  private layout(): void {
+    this.inner.style.display = this.collapsed ? 'none' : 'flex';
+    this.reopen.style.display = this.collapsed ? 'flex' : 'none';
+    if (!this.collapsed && this.lastDice) this.setFaces(this.lastDice[0], this.lastDice[1]);
   }
 
   private setFaces(a: number, b: number): void {
@@ -70,7 +97,5 @@ function makeDie(): HTMLDivElement {
 
 function renderDie(die: HTMLDivElement, value: number): void {
   const on = new Set(PIPS[value] ?? []);
-  die.querySelectorAll('span').forEach((s, i) => {
-    s.className = on.has(i) ? 'on' : '';
-  });
+  die.querySelectorAll('span').forEach((s, i) => { s.className = on.has(i) ? 'on' : ''; });
 }
