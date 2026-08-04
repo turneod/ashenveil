@@ -119,11 +119,16 @@ export function produce(state: GameState, total: number): void {
 /** Bir oyuncunun bir kaynağı bankaya verme oranı (limanlara göre 4/3/2). */
 export function tradeRatio(state: GameState, player: number, give: Resource): number {
   let ratio = 4;
+  let anyPort = false;
   for (const v of buildingsOf(state, player)) {
     const port = state.vertices[v].port;
+    if (port === null) continue;
+    anyPort = true;
     if (port === 'genel') ratio = Math.min(ratio, 3);
     else if (port === give) ratio = Math.min(ratio, 2);
   }
+  // Liman Ustası paketi: herhangi bir liman sahibi tüm kaynaklarda en az 3:1 alır.
+  if (state.packs.liman && anyPort) ratio = Math.min(ratio, 3);
   return ratio;
 }
 

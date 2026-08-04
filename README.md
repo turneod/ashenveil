@@ -10,6 +10,17 @@ Catan'dan ilham alan, **tamamen Türkçe**, tarayıcıda oynanan sade bir aile o
   Oda kuran kişi sekmesini açık tutmalıdır.
 
 Karışık yaş grupları için basit kurallar ve isteğe bağlı **Çocuk Modu** içerir.
+Tüm görsel öğeler SVG ile çizilir (emoji yok).
+
+## Kartlar ve ek paketler
+
+- **Gelişim Kartları (oyuna dahil):** Şövalye (kervancıyı oynat + En Büyük Ordu),
+  Yol Yapımı (2 bedava yol), Bereket Yılı (bankadan 2 kaynak), Tekel (bir kaynağın
+  tümünü topla), Zafer Puanı. Kart yün+buğday+taş ile alınır; alındığı tur oynanamaz.
+- **Ek paketler (başlangıçta seç):**
+  - **Görev Kartları:** her oyuncuya gizli hedef; tamamlayınca +2 puan.
+  - **Olay Kartları:** bazı zar atışlarında sürpriz olaylar (şenlik/bolluk/fırtına).
+  - **Liman Ustası:** liman sahibi tüm kaynaklarda en az 3:1 takas yapar.
 
 ## Nasıl oynanır?
 

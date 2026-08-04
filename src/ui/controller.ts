@@ -98,6 +98,11 @@ export class GameController {
       onProposeTrade: (to, give, want) => this.send({ t: 'proposeTrade', to, give, want }),
       onRespondTrade: (accept) => this.send({ t: 'respondTrade', accept }),
       onCancelTrade: () => this.send({ t: 'cancelTrade' }),
+      onBuyDev: () => this.send({ t: 'buyDev' }),
+      onPlayKnight: () => this.send({ t: 'playKnight' }),
+      onPlayRoadBuilding: () => this.send({ t: 'playRoadBuilding' }),
+      onPlayPlenty: (r1, r2) => this.send({ t: 'playPlenty', r1, r2 }),
+      onPlayMonopoly: (r) => this.send({ t: 'playMonopoly', r }),
       onEndTurn: () => this.send({ t: 'endTurn' }),
       onNewGame: () => this.onNewGame(),
     };

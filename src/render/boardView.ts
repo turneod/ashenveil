@@ -3,7 +3,7 @@
 // buğday, tuğla, çöl), olasılık noktalı jetonlar, evler/şehirler, kervancı ve limanlar.
 
 import type { GameState, TerrainType } from '../game/types';
-import { portEtiket } from '../i18n';
+import { resourceGlyphAt } from './icons';
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 
@@ -276,9 +276,18 @@ function drawPorts(svg: SVGSVGElement, state: GameState): void {
     const oy = e.y + (e.y / len) * 28;
     svg.appendChild(el('line', { x1: state.vertices[e.a].x, y1: state.vertices[e.a].y, x2: ox, y2: oy, stroke: '#8a5a2b', 'stroke-width': 3, 'stroke-linecap': 'round' }));
     svg.appendChild(el('line', { x1: state.vertices[e.b].x, y1: state.vertices[e.b].y, x2: ox, y2: oy, stroke: '#8a5a2b', 'stroke-width': 3, 'stroke-linecap': 'round' }));
-    svg.appendChild(el('circle', { cx: ox, cy: oy, r: 14, fill: '#fbf3e0', stroke: '#2f6690', 'stroke-width': 2, filter: 'url(#f-shadow)' }));
-    const txt = el('text', { x: ox, y: oy, class: 'port', fill: '#1c3d5a' });
-    txt.textContent = portEtiket(pa);
-    svg.appendChild(txt);
+    svg.appendChild(el('circle', { cx: ox, cy: oy, r: 15, fill: '#fbf3e0', stroke: '#2f6690', 'stroke-width': 2, filter: 'url(#f-shadow)' }));
+    if (pa === 'genel') {
+      const txt = el('text', { x: ox, y: oy, class: 'port', fill: '#1c3d5a' });
+      txt.textContent = '3:1';
+      svg.appendChild(txt);
+    } else {
+      const txt = el('text', { x: ox, y: oy - 5, class: 'port', fill: '#1c3d5a' });
+      txt.textContent = '2:1';
+      svg.appendChild(txt);
+      const g = el('g');
+      g.innerHTML = resourceGlyphAt(pa, ox, oy + 5, 13);
+      svg.appendChild(g);
+    }
   }
 }
