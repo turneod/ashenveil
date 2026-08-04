@@ -1,5 +1,6 @@
-// Takas paneli: 🏦 Banka (limanlara göre oran) ve 🤝 Oyuncu (rakibe teklif).
-// Kendi seçim durumunu tutar; oyun durumu ancak "Değiştir"/"Teklif Et" ile değişir.
+// Takas paneli: Banka (limanlara göre oran) ve Oyuncu (rakibe teklif).
+// Oyuncu takası adım adım yönlendirir: rakip seç → vereceğine dokun → istediğine dokun.
+// Kendi seçim durumunu tutar; oyun durumu ancak butonla değişir.
 
 import type { GameState, Resource } from '../game/types';
 import { RESOURCES } from '../game/types';
@@ -24,6 +25,14 @@ function h(tag: string, props: Record<string, unknown> = {}, ...kids: (Node | st
   return e;
 }
 
+const empty = (): Record<Resource, number> => ({ odun: 0, tugla: 0, yun: 0, bugday: 0, tas: 0 });
+const total = (m: Record<Resource, number>) => RESOURCES.reduce((s, r) => s + m[r], 0);
+const nonZero = (m: Record<Resource, number>): Partial<Record<Resource, number>> => {
+  const o: Partial<Record<Resource, number>> = {};
+  for (const r of RESOURCES) if (m[r] > 0) o[r] = m[r];
+  return o;
+};
+
 export function renderTradePanel(state: GameState, actions: TradeActions): HTMLElement {
   const me = state.current;
   const box = h('div', { class: 'trade' });
@@ -32,60 +41,71 @@ export function renderTradePanel(state: GameState, actions: TradeActions): HTMLE
   let bankGive: Resource | null = null;
   let bankRecv: Resource | null = null;
   let target: number | null = null;
-  const give: Record<Resource, number> = { odun: 0, tugla: 0, yun: 0, bugday: 0, tas: 0 };
-  const want: Record<Resource, number> = { odun: 0, tugla: 0, yun: 0, bugday: 0, tas: 0 };
-
-  const body = h('div', { class: 'trade-body' });
+  const give = empty();
+  const want = empty();
 
   const tabs = h('div', { class: 'seg' });
+  const body = h('div', { class: 'trade-body' });
   box.append(tabs, body);
-
-  function tab(iconName: string, label: string, active: boolean, on: () => void): HTMLElement {
-    return h('button', { class: `seg-btn${active ? ' on' : ''}`, onclick: on }, uiIcon(iconName, 16), label);
-  }
 
   function paintTabs(): void {
     tabs.replaceChildren(
-      tab('banka', 'Banka', mode === 'banka', () => { mode = 'banka'; paint(); }),
-      tab('takas', 'Oyuncu', mode === 'oyuncu', () => { mode = 'oyuncu'; paint(); }),
+      h('button', { class: `seg-btn${mode === 'banka' ? ' on' : ''}`, onclick: () => { mode = 'banka'; paint(); } }, uiIcon('banka', 16), 'Banka'),
+      h('button', { class: `seg-btn${mode === 'oyuncu' ? ' on' : ''}`, onclick: () => { mode = 'oyuncu'; paint(); } }, uiIcon('takas', 16), 'Oyuncu'),
     );
   }
 
+  // ---- Banka ----
   function resChips(selected: Resource | null, pick: (r: Resource) => void): HTMLElement {
     const row = h('div', { class: 'chip-row' });
     for (const r of RESOURCES) {
-      row.append(h('button', {
-        class: `chip${selected === r ? ' on' : ''}`, title: RES_AD[r], onclick: () => pick(r),
-      }, resIcon(r, 20)));
+      row.append(h('button', { class: `chip${selected === r ? ' on' : ''}`, title: RES_AD[r], onclick: () => pick(r) }, resIcon(r, 20)));
     }
     return row;
   }
 
-  function stepper(store: Record<Resource, number>, maxOf: (r: Resource) => number): HTMLElement {
-    const grid = h('div', { class: 'step-grid' });
+  // ---- Oyuncu: kaynağa dokun → sepete ekle ----
+  function addRow(store: Record<Resource, number>, maxOf: (r: Resource) => number, showHold: boolean): HTMLElement {
+    const row = h('div', { class: 'add-row' });
     for (const r of RESOURCES) {
-      const count = h('span', { class: 'sc' }, String(store[r]));
-      const dec = h('button', { class: 'sbtn', onclick: () => { if (store[r] > 0) { store[r]--; count.textContent = String(store[r]); refreshButtons(); } } }, '−');
-      const inc = h('button', { class: 'sbtn', onclick: () => { if (store[r] < maxOf(r)) { store[r]++; count.textContent = String(store[r]); refreshButtons(); } } }, '+');
-      grid.append(h('div', { class: 'step-cell' },
-        resIcon(r, 20),
-        h('div', { class: 'step-row' }, dec, count, inc),
-      ));
+      const hold = state.players[me].resources[r];
+      const dis = showHold && hold <= 0;
+      const coin = h('button', {
+        class: 'coin', title: RES_AD[r], disabled: dis,
+        onclick: () => { if (store[r] < maxOf(r)) { store[r] += 1; paint(); } },
+      }, resIcon(r, 22));
+      if (showHold) coin.append(h('span', { class: 'hold' }, String(hold)));
+      row.append(coin);
     }
-    return grid;
+    return row;
   }
 
-  let actBtn: HTMLElement;
-
-  function refreshButtons(): void {
-    if (mode === 'banka') {
-      const ok = !!bankGive && !!bankRecv && canBankTrade(state, me, bankGive, bankRecv);
-      actBtn.toggleAttribute('disabled', !ok);
-    } else {
-      const g = RESOURCES.reduce((s, r) => s + give[r], 0);
-      const w = RESOURCES.reduce((s, r) => s + want[r], 0);
-      actBtn.toggleAttribute('disabled', !(target !== null && (g > 0 || w > 0)));
+  function basket(store: Record<Resource, number>, hint: string): HTMLElement {
+    const keys = RESOURCES.filter((r) => store[r] > 0);
+    if (keys.length === 0) return h('div', { class: 'basket empty' }, hint);
+    const b = h('div', { class: 'basket' });
+    for (const r of keys) {
+      b.append(h('button', { class: 'bchip', title: 'Çıkar', onclick: () => { store[r] -= 1; paint(); } }, resIcon(r, 16), `×${store[r]}`));
     }
+    return b;
+  }
+
+  function dot(i: number): HTMLElement {
+    const d = h('span', { class: 'dot2' });
+    d.style.background = state.players[i].color;
+    return d;
+  }
+
+  function miniChips(store: Record<Resource, number>): HTMLElement {
+    const keys = RESOURCES.filter((r) => store[r] > 0);
+    if (keys.length === 0) return h('span', { class: 'mc-empty' }, '—');
+    const s = h('span', { class: 'mc' });
+    for (const r of keys) { s.append(resIcon(r, 15)); if (store[r] > 1) s.append(h('span', { class: 'mc-n' }, `×${store[r]}`)); }
+    return s;
+  }
+
+  function step(n: string, label: string): HTMLElement {
+    return h('div', { class: 'trade-step' }, h('span', { class: 'step-num' }, n), label);
   }
 
   function paint(): void {
@@ -93,42 +113,53 @@ export function renderTradePanel(state: GameState, actions: TradeActions): HTMLE
     body.replaceChildren();
 
     if (mode === 'banka') {
-      const ratioLbl = h('span', { class: 'ratio' }, bankGive ? `${tradeRatio(state, me, bankGive)}:1` : '4:1');
+      const ratio = bankGive ? tradeRatio(state, me, bankGive) : 4;
       body.append(
-        h('div', { class: 'trow' }, h('span', { class: 'tlbl' }, 'Ver'), resChips(bankGive, (r) => { bankGive = r; paint(); }), ratioLbl),
+        h('div', { class: 'trow' }, h('span', { class: 'tlbl' }, 'Ver'), resChips(bankGive, (r) => { bankGive = r; paint(); }), h('span', { class: 'ratio' }, `${ratio}:1`)),
         h('div', { class: 'trow' }, h('span', { class: 'tlbl' }, 'Al'), resChips(bankRecv, (r) => { bankRecv = r; paint(); })),
       );
-      actBtn = h('button', { class: 'btn small full', onclick: () => { if (bankGive && bankRecv) actions.onBankTrade(bankGive, bankRecv); } }, 'Değiştir');
-    } else {
-      const opp = h('div', { class: 'chip-row' });
-      state.players.forEach((p, i) => {
-        if (i === me) return;
-        const b = h('button', { class: `chip pchip${target === i ? ' on' : ''}`, onclick: () => { target = i; paint(); } }, p.name);
-        b.style.setProperty('--pc', p.color);
-        opp.append(b);
-      });
-      body.append(
-        h('div', { class: 'trow' }, h('span', { class: 'tlbl' }, 'Kime'), opp),
-        h('div', { class: 'tlbl2' }, 'Veriyorsun'), stepper(give, (r) => state.players[me].resources[r]),
-        h('div', { class: 'tlbl2' }, 'İstiyorsun'), stepper(want, () => 9),
-      );
-      actBtn = h('button', {
-        class: 'btn small full', onclick: () => {
-          if (target === null) return;
-          actions.onProposeTrade(target, nonZero(give), nonZero(want));
-        },
-      }, 'Teklif Et');
+      const ok = !!bankGive && !!bankRecv && canBankTrade(state, me, bankGive, bankRecv);
+      body.append(h('button', { class: 'btn small full', disabled: !ok, onclick: () => { if (bankGive && bankRecv) actions.onBankTrade(bankGive, bankRecv); } }, 'Değiştir'));
+      return;
     }
-    body.append(actBtn);
-    refreshButtons();
+
+    // Oyuncu takası — yönlendirmeli
+    // 1) Kime?
+    body.append(step('1', 'Kime teklif?'));
+    const opp = h('div', { class: 'chip-row' });
+    state.players.forEach((p, i) => {
+      if (i === me) return;
+      const b = h('button', { class: `chip pchip${target === i ? ' on' : ''}`, onclick: () => { target = i; paint(); } }, dot(i), p.name);
+      opp.append(b);
+    });
+    body.append(opp);
+
+    // 2) Ne verirsin?
+    body.append(step('2', 'Sen ne verirsin?'));
+    body.append(addRow(give, (r) => state.players[me].resources[r], true));
+    body.append(basket(give, 'Elindekilere dokun'));
+
+    // 3) Ne istersin?
+    body.append(step('3', 'Karşılığında ne istersin?'));
+    body.append(addRow(want, () => 9, false));
+    body.append(basket(want, 'İstediğin kaynaklara dokun'));
+
+    // Önizleme + gönder
+    const preview = h('div', { class: 'deal' },
+      dot(me), miniChips(give), uiIcon('takas', 15), miniChips(want),
+      target !== null ? dot(target) : h('span', { class: 'q' }, '?'));
+    body.append(preview);
+
+    const ready = target !== null && (total(give) > 0 || total(want) > 0);
+    body.append(h('div', { class: 'trade-actions' },
+      h('button', {
+        class: 'btn primary small', style: 'flex:1', disabled: !ready,
+        onclick: () => { if (target !== null) actions.onProposeTrade(target, nonZero(give), nonZero(want)); },
+      }, 'Teklif Gönder'),
+      h('button', { class: 'btn small', onclick: () => { RESOURCES.forEach((r) => { give[r] = 0; want[r] = 0; }); target = null; paint(); } }, 'Temizle'),
+    ));
   }
 
   paint();
   return box;
-}
-
-function nonZero(m: Record<Resource, number>): Partial<Record<Resource, number>> {
-  const out: Partial<Record<Resource, number>> = {};
-  for (const r of RESOURCES) if (m[r] > 0) out[r] = m[r];
-  return out;
 }

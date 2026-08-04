@@ -185,22 +185,36 @@ button { font-family: inherit; cursor: pointer; }
 .trade-body { display: flex; flex-direction: column; gap: 7px; }
 .trow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .tlbl { font-size: .78rem; font-weight: 700; color: #6b5a3c; min-width: 34px; }
-.tlbl2 { font-size: .78rem; font-weight: 700; color: #6b5a3c; margin-top: 2px; }
 .ratio { margin-left: auto; font-weight: 800; color: var(--accent-d); }
-.chip-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip-row { display: flex; gap: 5px; flex-wrap: wrap; }
 .chip {
+  display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid var(--line); background: #fff; border-radius: 9px; padding: 4px 8px;
-  font-size: 1.05rem; cursor: pointer; line-height: 1;
+  cursor: pointer; line-height: 1;
 }
-.chip.pchip { font-size: .8rem; font-weight: 700; padding: 5px 9px; border-left: 4px solid var(--pc); }
+.chip.pchip { gap: 6px; font-size: .82rem; font-weight: 700; padding: 6px 10px; }
 .chip.on { outline: 2.5px solid var(--accent); background: #fff2e0; }
-.step-grid { display: flex; gap: 4px; justify-content: space-between; }
-.step-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
-.se { font-size: 1.1rem; }
-.step-row { display: flex; align-items: center; gap: 3px; }
-.sbtn { width: 22px; height: 22px; border: 1px solid var(--line); background: #fff; border-radius: 6px; font-weight: 800; cursor: pointer; line-height: 1; }
-.sc { min-width: 12px; text-align: center; font-weight: 800; font-size: .9rem; }
 .btn.full { width: 100%; }
+
+/* Oyuncu takası — yönlendirmeli akış */
+.trade-step { display: flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 800; color: #5c4d33; margin-top: 4px; }
+.step-num { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: #fff; font-size: .72rem; font-weight: 800; }
+.add-row { display: flex; gap: 5px; }
+.coin { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 6px 2px; cursor: pointer; }
+.coin[disabled] { opacity: .35; cursor: not-allowed; }
+.coin:hover:not([disabled]) { border-color: var(--accent); background: #fff8ef; }
+.coin .hold { font-size: .62rem; color: #8a7a5c; font-weight: 800; }
+.basket { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; min-height: 26px; }
+.basket.empty { font-size: .74rem; color: #b0a48a; font-style: italic; }
+.bchip { display: inline-flex; align-items: center; gap: 3px; border: 1.5px solid var(--accent); background: #fff2e0; border-radius: 8px; padding: 2px 7px; font-weight: 800; font-size: .82rem; color: var(--accent-d); cursor: pointer; }
+.bchip:hover { background: #ffe6cc; }
+.deal { display: flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: wrap; background: #fff; border: 1px dashed var(--line); border-radius: 10px; padding: 7px; margin-top: 2px; }
+.deal .dot2 { width: 13px; height: 13px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .3); }
+.deal .mc { display: inline-flex; align-items: center; gap: 1px; }
+.deal .mc-n { font-weight: 800; font-size: .8rem; }
+.deal .mc-empty { color: #b0a48a; font-weight: 700; }
+.deal .q { font-weight: 800; color: #b0a48a; }
+.trade-actions { display: flex; gap: 6px; }
 
 /* Takas yanıtı */
 .trade-ask { border: 2px solid var(--accent); border-radius: 12px; padding: 10px; background: #fff6ea; }
